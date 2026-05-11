@@ -1,0 +1,51 @@
+-- =========================================================
+-- FILE: 02_data_cleaning.sql
+-- =========================================================
+
+USE business_intelligence;
+
+-- CHECK NULL VALUES
+SELECT * 
+FROM users
+WHERE email IS NULL;
+
+-- CHECK DUPLICATES
+SELECT 
+    email,
+    COUNT(*) AS duplicate_count
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- CHECK FAILED PAYMENTS
+SELECT *
+FROM payments
+WHERE status != 'paid';
+
+-- CHECK CANCELLED ORDERS
+SELECT *
+FROM orders
+WHERE status = 'cancelled';
+
+-- =========================================================
+-- CLEAN TABLES
+-- =========================================================
+
+CREATE TABLE clean_users AS
+SELECT *
+FROM users
+WHERE email IS NOT NULL;
+
+CREATE TABLE clean_orders AS
+SELECT *
+FROM orders
+WHERE status = 'completed';
+
+CREATE TABLE clean_payments AS
+SELECT *
+FROM payments
+WHERE status = 'paid';
+
+CREATE TABLE clean_sessions AS
+SELECT *
+FROM sessions;
