@@ -1,0 +1,103 @@
+-- =========================================================
+-- FILE: 06_advanced_analytics.sql
+-- =========================================================
+
+USE business_intelligence;
+
+-- =========================================================
+-- USER ACTIVITY
+-- =========================================================
+
+CREATE TABLE user_activity AS
+SELECT
+    user_id,
+    COUNT(order_id) AS total_orders,
+    MAX(order_date) AS last_order_date
+FROM fact_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- USER CHURN
+-- =========================================================
+
+CREATE TABLE user_churn AS
+SELECT
+    user_id,
+    MAX(order_date) AS last_order_date,
+    DATEDIFF(CURDATE(), MAX(order_date)) AS days_inactive,
+    CASE
+        WHEN DATEDIFF(CURDATE(), MAX(order_date)) > 30
+        THEN 'Churn Risk'
+        ELSE 'Active'
+    END AS status
+FROM fact_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- CHURN SUMMARY
+-- =========================================================
+
+CREATE TABLE churn_summary AS
+SELECT
+    status,
+    COUNT(*) AS total_users
+FROM user_churn
+GROUP BY status;
+
+-- =========================================================
+-- CUSTOMER INSIGHTS
+-- =========================================================
+
+CREATE TABLE customer_insights AS
+SELECT
+    user_id,
+    COUNT(order_id) AS total_orders,
+    SUM(revenue) AS total_spent,
+    MAX(order_date) AS last_order_date,
+    DATEDIFF(CURDATE(), MAX(order_date)) AS days_inactive
+FROM fact_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- CUSTOMER SEGMENTATION
+-- =========================================================
+
+SELECT
+    user_id,
+    CASE
+        WHEN SUM(revenue) > 50000 THEN 'High Value'
+        WHEN SUM(revenue) > 20000 THEN 'Medium Value'
+        ELSE 'Low Value'
+    END AS customer_segment
+FROM fact_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- REPEAT VS NEW CUSTOMERS
+-- =========================================================
+
+SELECT
+    user_id,
+    COUNT(order_id) AS total_orders,
+    CASE
+        WHEN COUNT(order_id) = 1
+        THEN 'New Customer'
+        ELSE 'Repeat Customer'
+    END AS customer_type
+FROM fact_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- CUSTOMER CONTRIBUTION
+-- =========================================================
+
+SELECT
+    user_id,
+    SUM(revenue) AS revenue,
+    ROUND(
+        SUM(revenue) * 100 /
+        (SELECT SUM(revenue) FROM fact_orders),
+    2) AS contribution_percent
+FROM fact_orders
+GROUP BY user_id
+ORDER BY contribution_percent DESC;
