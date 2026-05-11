@@ -1,0 +1,50 @@
+-- =========================================================
+-- FILE: 04_data_warehouse.sql
+-- =========================================================
+
+USE business_intelligence;
+
+-- =========================================================
+-- FACT TABLE
+-- =========================================================
+
+CREATE TABLE fact_orders AS
+SELECT
+    order_id,
+    user_id,
+    order_date,
+    revenue
+FROM enriched_orders;
+
+-- =========================================================
+-- DIM USERS
+-- =========================================================
+
+CREATE TABLE dim_users AS
+SELECT
+    user_id,
+    name,
+    country,
+    signup_date
+FROM clean_users;
+
+-- =========================================================
+-- DIM DATE
+-- =========================================================
+
+CREATE TABLE dim_date AS
+SELECT DISTINCT
+    order_date,
+    YEAR(order_date) AS year,
+    MONTH(order_date) AS month,
+    DAY(order_date) AS day
+FROM fact_orders;
+
+-- =========================================================
+-- DIM COUNTRY
+-- =========================================================
+
+CREATE TABLE dim_country AS
+SELECT DISTINCT
+    country
+FROM dim_users;
