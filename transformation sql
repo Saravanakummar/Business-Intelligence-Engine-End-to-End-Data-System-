@@ -1,0 +1,54 @@
+-- =========================================================
+-- FILE: 03_transformation.sql
+-- =========================================================
+
+USE business_intelligence;
+
+-- =========================================================
+-- ENRICHED ORDERS
+-- =========================================================
+
+CREATE TABLE enriched_orders AS
+SELECT
+    o.order_id,
+    o.user_id,
+    DATE(o.order_date) AS order_date,
+    p.amount AS revenue
+FROM clean_orders o
+JOIN clean_payments p
+ON o.order_id = p.order_id;
+
+-- =========================================================
+-- MONTHLY REVENUE
+-- =========================================================
+
+CREATE TABLE monthly_revenue AS
+SELECT
+    DATE_FORMAT(order_date, '%Y-%m') AS month,
+    SUM(revenue) AS total_revenue
+FROM enriched_orders
+GROUP BY month;
+
+-- =========================================================
+-- USER ORDERS
+-- =========================================================
+
+CREATE TABLE user_orders AS
+SELECT
+    user_id,
+    COUNT(order_id) AS total_orders
+FROM enriched_orders
+GROUP BY user_id;
+
+-- =========================================================
+-- USER SUMMARY
+-- =========================================================
+
+CREATE TABLE user_summary AS
+SELECT
+    user_id,
+    COUNT(order_id) AS total_orders,
+    SUM(revenue) AS total_spent,
+    AVG(revenue) AS avg_order_value
+FROM enriched_orders
+GROUP BY user_id;
