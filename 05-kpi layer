@@ -1,0 +1,49 @@
+-- =========================================================
+-- FILE: 05_kpi_layer.sql
+-- =========================================================
+
+USE business_intelligence;
+
+-- =========================================================
+-- KPI SUMMARY
+-- =========================================================
+
+DROP TABLE IF EXISTS kpi_summary;
+
+CREATE TABLE kpi_summary (
+    total_revenue DECIMAL(12,2),
+    active_users INT,
+    avg_order_value DECIMAL(12,2)
+);
+
+INSERT INTO kpi_summary
+SELECT
+    SUM(revenue),
+    COUNT(DISTINCT user_id),
+    ROUND(SUM(revenue) / COUNT(order_id), 2)
+FROM fact_orders;
+
+-- =========================================================
+-- COUNTRY REVENUE
+-- =========================================================
+
+CREATE TABLE country_revenue AS
+SELECT
+    d.country,
+    SUM(f.revenue) AS total_revenue
+FROM fact_orders f
+JOIN dim_users d
+ON f.user_id = d.user_id
+GROUP BY d.country;
+
+-- =========================================================
+-- TOP CUSTOMERS
+-- =========================================================
+
+CREATE TABLE top_customers AS
+SELECT
+    user_id,
+    SUM(revenue) AS total_spent
+FROM fact_orders
+GROUP BY user_id
+ORDER BY total_spent DESC;
